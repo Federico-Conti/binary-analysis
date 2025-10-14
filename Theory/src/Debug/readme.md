@@ -20,8 +20,10 @@ Esempio
 Puoi ispezionare la struttura ELF con:
 
 ```bash
-readelf -h factorial
-readelf -S factorial
+readelf -h factorial # header
+readelf -S factorial # header sections
+readelf -r factorial # relocation entries
+
 ```
 
 Qui vedi che `.debug_info` (che contiene dati DWARF!) è **una sezione dentro l’ELF**.
