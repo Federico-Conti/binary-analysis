@@ -23,6 +23,7 @@ Puoi ispezionare la struttura ELF con:
 readelf -h factorial # header
 readelf -S factorial # header sections
 readelf -r factorial # relocation entries
+readelf -l factorial # program headers
 
 ```
 
@@ -113,3 +114,4 @@ Adding the `i` option (e.g., `stepi` or `nexti`) enables working at the assembly
 - `break *0x4011a3` : set a breakpoint at address 0x4011a3
 - `info breakpoints`: list breakpoints
 - `break *$rdi`: set a breakpoint at the address stored in the rdi register
+- `vmm`: show memory mappings
