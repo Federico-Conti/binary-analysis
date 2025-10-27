@@ -200,3 +200,17 @@ printf '\x05' | dd of=elf4 bs=1 seek=$((0x7C)) count=1 conv=notrunc
   # Output
   BASC{no_eXec_no_party} # success!
 ```
+
+## Bonus: ELF_files.zip
+
+The file `ELF_files.zip` is actually an ELF executable disguised as a ZIP archive.
+
+```sh
+file ELF_files.zip 
+ELF_files.zip: ELF 64-bit LSB pie executable, x86-64, ...
+
+chmod +x ELF_files.zipelf4
+./ELF_files.zip
+  # Output
+  BASC{can_U_run_a_ZIP?}
+```
