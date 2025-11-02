@@ -50,7 +50,7 @@ On Linux, the standard defines that `main` is called by the function `__libc_sta
 1. Find a call to `__libc_start_main`.
 2. Inspect its first argument, which contains the address of `main`.
 
-### Using GDB
+**Using GDB**
 
 - Set a breakpoint on `__libc_start_main`.
 - When execution reaches this function, its first parameter will hold the address of `main`.
@@ -61,7 +61,7 @@ On Linux, the standard defines that `main` is called by the function `__libc_sta
 - **For 64-bit executables**:  
     Arguments are passed via registers. The first six parameters are stored in registers, with the first parameter in `rdi`. Simply read the content of `rdi` to get the address of `main`.
 
-### Using Ghidra
+**Using Ghidra**
 
 - Navigate to the entry point of the executable.
 - Locate the call to `__libc_start_main`.
@@ -84,3 +84,46 @@ In Ghidra, esistono diversi tipi di commenti che possono essere utilizzati per a
 Il **pre-comment** è particolarmente utile perché appare anche nella vista decompilata, rendendolo ideale per annotare il codice leggibile.
 
 Ad esempio, un **repeatable comment** aggiunto all'inizio di `main` verrà mostrato automaticamente in ogni altro punto del codice in cui quell'indirizzo è referenziato, come in chiamate o cross-reference.
+
+
+
+## Code Coverage: Dynamic Analysis
+
+Code coverage is a dynamic analysis that allows you to:  
+
+- Run a program and observe which parts are actually executed.  
+- Identify unexecuted code areas, useful for complex programs.  
+
+How It Works  
+
+1. Program Execution: Use tracking tools like **Dr.Cov (DynamoRIO)** or **Delphin** to record executed basic blocks.  
+2. Log Analysis: The generated log files can be viewed with Ghidra plugins or similar tools.  
+3. Visualization: Plugins color code blocks based on execution frequency:  
+    - Red: Executed many times.  
+    - Yellow: Executed only once.  
+4. Advanced Queries: Ability to compare multiple execution traces to find intersections or unions.  
+
+Applications  
+
+- Identify controls or critical areas in complex programs.  
+- Not recommended for small programs.  
+
+
+Introduction to **[PawnTools](https://github.com/Gallopsled/pwntools)**
+
+PawnTools is a Python library designed for:  
+- Exploit development: Scripts that leverage vulnerabilities to gain unauthorized access or read sensitive data.  
+- Reverse engineering: Also useful for program analysis.  
+
+Convertire tra interi e sequenze di byte, rispettando l’endianness.
+
+| Funzione | Cosa fa                     | Input               | Output          |
+|----------|-----------------------------|---------------------|-----------------|
+| p32(n)   | Pack int 32-bit → bytes     | 0xdeadbeef          | b'\xef\xbe\xad\xde' |
+| p64(n)   | Pack int 64-bit → bytes     | 0xdeadbeefcafebabe  | 8 byte          |
+| u32(b)   | Unpack 4 byte → int         | b'\xef\xbe\xad\xde' | 0xdeadbeef      |
+| u64(b)   | Unpack 8 byte → int         | 8 byte              | Intero          |
+
+
+Con Pwntools è possibile anche assemblare/disassemblare, cosa che può tornare utile; potete parsare ELF, cercare dentro i file, disassemblarli e, per esempio, patchare un ELF.
+
