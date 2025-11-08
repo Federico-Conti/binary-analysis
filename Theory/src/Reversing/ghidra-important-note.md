@@ -108,10 +108,12 @@ Applications
 - Identify controls or critical areas in complex programs.  
 - Not recommended for small programs.  
 
+## Patching Binaries
 
 Introduction to **[PawnTools](https://github.com/Gallopsled/pwntools)**
 
 PawnTools is a Python library designed for:  
+
 - Exploit development: Scripts that leverage vulnerabilities to gain unauthorized access or read sensitive data.  
 - Reverse engineering: Also useful for program analysis.  
 
@@ -125,5 +127,5 @@ Convertire tra interi e sequenze di byte, rispettando l’endianness.
 | u64(b)   | Unpack 8 byte → int         | 8 byte              | Intero          |
 
 
-Con Pwntools è possibile anche assemblare/disassemblare, cosa che può tornare utile; potete parsare ELF, cercare dentro i file, disassemblarli e, per esempio, patchare un ELF.
+With Pwntools, you can also assemble/disassemble, which can be useful; you can parse ELF, search inside files, disassemble them and, for example, patch an ELF.
 
