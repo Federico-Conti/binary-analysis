@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 from pwn import *
 
-orig_elf = 'toppler_basc/toppler32'
-out_elf  = 'toppler_basc/toppler32_nocollisions'
+orig_elf = 'toppler_basc/toppler64'
+out_elf  = 'toppler_basc/toppler64_nocollisions'
 
 # walking function address
-walking_fun = 0x0805bd9c
+walking_fun = 0x0041d0bc
 
 # list of CALL sites to be modified in top_testcollision()
 call_sites = [
-    0x0805cb4c,
-    0x0805cb6b,
-    0x0805cc48,
-    0x0805cc21,
-    0x0805cc2b,
+    0x0041e2bf,
+    0x0041e248,
+    0x0041e25b,
+    0x041e1b2,
+    0x0041e1c3
 ]
 
 elf = ELF(orig_elf)
@@ -44,20 +44,4 @@ for call_site in call_sites:
 elf.save(out_elf)
 
 
-
-"""
-
-Cosa fa elf.write(call_site, ...)?
-
-Pwntools internamente:
-
-- Prende l'indirizzo virtuale call_site (es. 0x0805cb4c)
-- Trova in quale segmento cade (controllando i Program Headers)
-- Calcola l'offset nel file:
-
-
-
-
-Ogni CALL si trova a una distanza diversa da walking_fun, quindi serve un offset diverso per ciascuna.
-"""
 
