@@ -1,6 +1,16 @@
+__pycache__/
 copilot.txt
 appunti.md
 trascrizione.md
 .venv*/
 .git
+vpn_conf.py
+
+# tar extracts during notes 
+examples-elf
+basc-goodware
+shellcoding_files
+
+# git assignment 
 toppler-Federico-Conti
+shellcode-Federico-Conti
