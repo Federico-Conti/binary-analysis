@@ -5,6 +5,7 @@ trascrizione.md
 .venv*/
 .git
 vpn_conf.py
+*.conf
 
 # tar extracts during notes 
 examples-elf
