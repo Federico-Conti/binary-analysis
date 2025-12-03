@@ -1,5 +1,3 @@
-## Teoria importante
-
 Lo stack memorizza variabili locali e altre informazioni associate alle chiamate di funzione. 
 Lo stack inizia agli indirizzi più alti (0xfff...) e cresce verso il basso (0x000...) man mano che vengono chiamate più funzioni 
 
