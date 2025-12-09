@@ -12,7 +12,10 @@ examples-elf
 basc-goodware
 shellcoding_files
 fmtstr_files
+tbg_files
+pwn_student_binaries
 
 # git assignment 
 toppler-Federico-Conti
 shellcode-Federico-Conti
+exploitation-Federico-Conti

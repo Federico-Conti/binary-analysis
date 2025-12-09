@@ -81,9 +81,28 @@ Se la funzione non terminasse tramite exit, ma semplicemente ritornasse, probabi
 
  ## bof-demo/exploit7.py
 
-Supponiamo che il codice viene sempre caricato allo stesso indirizzo (siamo negli anni ’60: niente ASLR), quindi quella jump instruction sarà sempre a quell’indirizzo. Ottimo. A questo punto non ci interessa più dove si trovi lo stack: possiamo inviare 80 byte per raggiungere il return address, poi sovrascriverlo con l’indirizzo dell’istruzione jmp RSP.
+[RSP.png]
+Raramente è possibile conoscere la posizione esatta dello stack.
+Sfruttiamo: ` JMP ESP/JMP RSP`
 
-Quando la funzione ritorna, la CPU salterà a quell’indirizzo. E dato che l’istruzione ret ha appena eseguito un pop sullo stack, RSP punterà ai dati che abbiamo inserito. Quindi il salto a RSP farà iniziare l’esecuzione di ciò che abbiamo posizionato nello stack. E possiamo metterci qualunque codice vogliamo. Il programma eseguirà codice arbitrario scelto dall’attaccante, una shelcode.
+```sh
+pip3 install ropper
+ropper -f bof-demo --type jop --search '%rsp%' --quality 1
+# oppure
+objdump -d bof-demo | grep -i "jmp" ` 
+  40127d:  ff e4   jmp    *%rsp
+```
+
+- Che significa: salta all’indirizzo contenuto nel registro ESP, cioè allo stack pointer, che in quel momento punterà proprio allo shellcode che hai inserito.
+
+Anche se non conosci l’indirizzo dello stack, conosci l’indirizzo del codice del programma (o libreria) che contiene un’istruzione JMP ESP.
+Quindi nel return address metti l’indirizzo dell’istruzione JMP ESP, non l’indirizzo dello shellcode.
+
+Flusso:
+
+- Overflow → sovrascrivi EIP con indirizzo di una JMP ESP già nel programma.
+- La CPU esegue quella istruzione.
+- La JMP ESP ti porta automaticamente nello stack, direttamente sullo shellcode.
 
 Di solito gli shellcode sono soggetti a vincoli di dimensione e di byte ammessi.
 Ad esempio, nel nostro caso c’era un byte che non potevamo usare nello shellcode. Sapete qual era?
@@ -95,7 +114,7 @@ Per questo motivo gli shellcode sono generalmente scritti in assembly. E fortuna
 ---
 
 - L'istruzione jmp RSP è utile perché consente di eseguire il codice arbitrario già presente nello stack, senza dover conoscere esattamente dove si trova lo shellcode in memoria.
-- Questo approccio è particolarmente utile in scenari in cui l'indirizzo dello stack è prevedibile o fisso (ad esempio, in assenza di ASLR - Address Space Layout Randomization).
+
 
 ```sh
 b'a' * OFFSET_RIP        # riempie il buffer e sovrascrive fino al RIP
