@@ -14,6 +14,8 @@ shellcoding_files
 fmtstr_files
 tbg_files
 pwn_student_binaries
+frida-examples
+pin-examples
 
 # git assignment 
 toppler-Federico-Conti

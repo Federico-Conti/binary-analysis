@@ -1,0 +1,39 @@
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+
+
+
+"""
+
+    Inserendo un valore come 
+          Foo' -- 
+    nel campo name, 
+    la query risultante potrebbe diventare:
+
+    SELECT * FROM introduction_login WHERE user = 'Foo' --' AND password = '...';
+
+    Il commento -- in SQL ignora tutto ciò che segue, quindi la condizione sulla password viene bypassata.
+"""
+
+@login_required
+def sql_lab(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        password = request.POST.get('pass')
+
+        if name and password:
+            query = "SELECT * FROM introduction_login WHERE user = %s AND password = %s"
+            with connection.cursor() as cursor:
+                cursor.execute(query, [name, password])
+                results = cursor.fetchall()
+
+            # Esempio di gestione dei risultati
+            if results:
+                return render(request, 'success.html', {'results': results})
+            else:
+                return render(request, 'failure.html', {'error': 'Invalid credentials'})
+
+    return render(request, 'login.html')
+
+

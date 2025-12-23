@@ -1,0 +1,27 @@
+
+file0.exe --> executable
+file1.txt --> also executable
+
+Because in reality the file name were 
+file0.exe.exe
+file1.txt.exe
+but windows hides the extensions.
+
+file2.jar
+"""java -jar file2.jar"""
+what if we change the e ?
+file2.bmp
+An image is displayed
+
+--------------
+hello.c 
+gcc -c hello.c -o hello.o
+gcc -c hello.c -o hello.o
+objdump -d -M intel hello.o
+
+description: 
+
+## 1. Assembly Code and Assembler Directives Ok, this example, let's take a look at the corresponding assembly. You see that in the assembly file we have some dots something which are directives for the assembler. For instance, it's a low world and don't worry if you don't understand the instructions, I want just to give you an idea of the form of an assembly file. Do notice that some symbols are called even though the corresponding label is not defined. So for instance printf is not defined in this file, the assembler simply ignored it. Printf will be added to the undefined symbols, so the metadata for the object file will contain the information that printf is undefined. And the linker, when we put all files together, will check that all undefined symbols are actually defined before we create the final executable. Ok, again I don't want to show you every detail right now. ## 2. Object Files and Disassembly with objdump And also let me show you the .o. This one is the object file, the relocatable file. We can parse it with objdump. So for instance we can disassemble the file. By default objdump uses an unreadable syntax, which is awful and we will discuss about that later. So to avoid that you just say "-m intel". And if I provide the correct file name I have more chances to get it right. So let me make some more space. Ok. Now, we should observe something. On the left side I have the bytes that are in the file. And on the right side I have the assembly instructions. We should notice that the call instruction is e8. So we have a call here, we have a call here, we have a call here and we have a call here. Another thing that we can notice is that the number of bytes required for the instruction is not constant. So for instance push rvp is a single byte, but call printf is a 5 byte instruction. ## 3. Instruction Addressing and Relative Calls And I'd like also to show you something else. Ok. So we have four call instructions. And three of the four have 0000 in the bytes, but the other one is not. And for instance this one, we are inside the function in the source code, so this should be a call to printf. However, this address is actually this byte. So why it says call 13? Well, the point is that after this call instruction is fetched by the processor in order to execute it, the instruction pointer will point to the next instruction, so it will point to 13. And if we add 0, 0, 0, 0 to 13 and get 13. So that's why the objdump says that this is a call to 13, because this is how the x86 calculates the target address. However, no, sorry, the last one points here. However, this one points to say the word and it needs its call 0. These bytes are not 0. These are actually minus something to get to the address 0, which is the function say the word. So, why 3 out of 4 are still a result, but that one points to 0? ## 4. Symbol Resolution and Static vs Dynamic Linking But why that and not the other ones? What's so special? Exactly. In this case, we do know that the function is this one. While in the other cases, even though it should sound strange, we are not sure that this call to new line will call this function. It may sound absurd. However, in the linking process, if the symbol new line is defined before by another file, that symbol will be called instead of that one. We will discuss that later in the course. This is also something that, a trick that we can do in order to replace library functions with something else. But it's a bit counterintuitive, and the only reason why this one was resolved is because static means, okay, it's this one, not possible overridden by something else. ## 5. Relocation Metadata and Linker Operations Now, we have these holes, okay? So, how can the linker know that it should substitute those addresses, sorry, those zeros with the actual addresses? Well, there is some metadata. Okay. So, we can see that inside the function sayLowWord we call printf, okay? And in the metadata of the object file we have these offsets and the corresponding values. So, the value 0f points to this byte, okay? Because e is the byte e8, so the next byte is offset f. At offset f the link should put the address of printf minus 4. The minus 4 is a technical detail and it's due to the fact that the value that the link puts is actually a relative value. And after the call instruction has effect the address point will point 4 bytes after that value. So, plus 4, minus 4, it's 0. So, the address of printf will be the result of that substitution. But, okay. Forget about technical detail. What I wanted to show you is the fact that there is a list of things that the link should resolve in order to produce the final executable where each address, sorry, each call or jumping structure has a corresponding correct address in the final executable.
+
+
+--------------
