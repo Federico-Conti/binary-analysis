@@ -122,3 +122,14 @@ Adding the `i` option (e.g., `stepi` or `nexti`) enables working at the assembly
 - `break *$rdi`: set a breakpoint at the address stored in the rdi register
 - `vmm`: show memory mappings
 - `x/5i *56555000`: disassemble 5 instructions at address 0x56555000
+
+
+
+
+Domanda: ho notato che usando GDB più volte, a volte i puntatori alle funzioni non funzionano più. GDB sta cambiando lo spazio degli indirizzi? Devo rifare tutto ogni volta?
+
+Risposta: sì e no. Dipende dalle impostazioni di GDB.
+
+ ogni volta che eseguite un programma questo viene caricato a un indirizzo casuale. Questa tecnica si chiama ASLR (Address Space Layout Randomization).
+
+In GDB potete disabilitarla.
