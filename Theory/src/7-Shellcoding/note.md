@@ -1,7 +1,7 @@
 Lo stack memorizza variabili locali e altre informazioni associate alle chiamate di funzione. 
 Lo stack inizia agli indirizzi più alti (0xfff...) e cresce verso il basso (0x000...) man mano che vengono chiamate più funzioni 
 
-gets(buf) scrive l'input dell'utente da indirizzi inferiori a indirizzi superiori, a partire da buf, e poiché non esiste alcun controllo dei limiti, l'aggressore può sovrascrivere parti di memoria a indirizzi superiori a buf.
+ `gets(buf)` scrive l'input dell'utente da indirizzi inferiori a indirizzi superiori, a partire da  `buf `, e poiché non esiste alcun controllo dei limiti, l'aggressore può sovrascrivere parti di memoria a indirizzi superiori a buf.
 
 ```c
 char name[64] = "";
@@ -12,19 +12,19 @@ Si noti che sia `name[]` e `magic` sono definiti all'esterno della funzione, qui
 
 ## bof-demo/bof-demo.c
 
-La funzione gets() 
-non dovrebbe mai essere usata. Come dice il manuale, il problema di gets è che riceve come input l’inizio di un buffer, ma non ha alcuna informazione sulla sua dimensione. Non esiste un modo di implementare gets in modo sicuro, perché l’utente controlla la quantità di dati forniti, e la funzione legge carattere per carattere finché non incontra una newline.
+La funzione  `gets()` non dovrebbe mai essere usata. Come dice il manuale, il problema di  `gets` è che riceve come input l’inizio di un  `buffer `, ma non ha alcuna informazione sulla sua dimensione. Non esiste un modo di implementare gets in modo sicuro, perché l’utente controlla la quantità di dati forniti, e la funzione legge carattere per carattere finché non incontra una  `newline`.
 
 Se inviamo una stringa corta, tutto bene; se inviamo una stringa più lunga di 64 caratteri (in realtà 63, considerando il terminatore null delle stringhe C), allora otteniamo un overflow del buffer.
 
-Dobbiamo chiederci come vengono allocate le variabili locali name e magic. Sappiamo che le variabili locali sono allocate sullo stack. Tuttavia, non sappiamo se in memoria name venga allocata a un indirizzo inferiore rispetto a magic, o viceversa.
+Dobbiamo chiederci come vengono allocate le variabili locali  `name` e  `magic `.
+Sappiamo che le variabili locali sono allocate sullo stack. Tuttavia, non sappiamo se in memoria  `name` venga allocata a un indirizzo inferiore rispetto a `magic`, o viceversa.
 E non importa l’ordine nel sorgente: il compilatore è libero di allocarle come vuole. Non esiste alcuna garanzia che una variabile dichiarata prima venga allocata prima, o viceversa.
 
 Esistono due possibilità:
 
-1. name è a un indirizzo inferiore: allora sovrascrivendo il buffer possiamo raggiungere magic.
+1.  `name` è a un indirizzo inferiore: allora sovrascrivendo il buffer possiamo raggiungere `magic`.
 
-2. name è a un indirizzo superiore: allora pur avendo un buffer overflow, non potremo mai sovrascrivere magic.
+2. `name` è a un indirizzo superiore: allora pur avendo un buffer overflow, non potremo mai sovrascrivere `magic`.
 
 Dipende tutto dal layout effettivo deciso dal compilatore.
 
@@ -37,7 +37,7 @@ python3 -c 'import os; os.write(1, b"a"*64 + b"\xee\xff\xc0\x00" + b"\n")' | ./b
 
 Se inviamo più byte, otteniamo un **segmentation fault**.
 
-Sul stack statico, oltre alle variabili locali, troviamo metadati, in particolare il saved return address (IP). Quindi se scriviamo abbastanza byte da oltrepassare name, magic e così via, arriveremo a sovrascrivere il return address.
+Sul stack statico, oltre alle variabili locali, troviamo metadati, in particolare il  `saved return address (IP)`. Quindi se scriviamo abbastanza byte da oltrepassare `name`, `magic` e così via, arriveremo a sovrascrivere il `return address`.
 E se al posto del return address mettiamo "AAAA", il programma tenterà di tornare a quell’indirizzo, causando un crash.
 
 **cyclic pattern technique**
@@ -152,7 +152,7 @@ una volta che la shell viene creata.
 1. Se si usa un comando come cut per inviare lo shellcode La shell viene creata e chiusa in un istante, e l'attaccante vede solo il programma vulnerabile terminare, dando l'impressione che lo shellcode non abbia funzionato.
 Il trucco è forzare il comando che alimenta la pipe a non terminare, mantenendo così la pipe aperta e il canale stdin della shell attivo per la nostra interazione.
 
-- cat my-shellcode - | vulnerable-prog
+- `cat my-shellcode - | vulnerable-prog`
 
 
 2. Quando stai sfruttando un servizio vulnerabile, quel servizio spesso ha i permessi di root (EUID = 0) perché deve svolgere funzioni a livello di sistema (ad esempio, un server web che gestisce le porte basse o un demone di sistema) ed EUID del processo vulnerabile: È root (0), perché il programma è un file SetUID root o è stato avviato da un processo genitore con privilegi.
@@ -187,7 +187,7 @@ NOTA: he INT 0x80 instruction has the binary opcode 11001101 10000000, which in 
 
 However
 
-- ello32-prog is an ELF file, not shellcode
+- hello32-prog is an ELF file, not shellcode
 This issue can be solved easily; we can either generate raw code with nasm, by using -f bin, the default format
 or extract the text section from the ELF:
 
@@ -211,14 +211,27 @@ Ci sono però due cose che sono position‑independent:
 
 - i salti (jump) e le chiamate (call). 
 
-Anche se la sintassi suggerisce il contrario — potete vedere “jump 100” e pensare “ok, 100 è un valore assoluto”: in realtà il processore codifica questa istruzione come distanza, negativa o positiva, dall’attuale instruction pointer all’indirizzo a cui vogliamo saltare o che vogliamo chiamare. Quindi le istruzioni jmp e call sono position‑independent. Inoltre, per definizione, ogni accesso allo stack dipende dal registro ESP, ma è normale non conoscere la posizione di ESP, quindi ogni volta usate semplicemente ESP più o meno un offset. Di conseguenza, anche quello è position‑independent.
+Anche se la sintassi suggerisce il contrario — potete vedere “jump 100” e pensare “ok, 100 è un valore assoluto”: in realtà il processore codifica questa istruzione come distanza, negativa o positiva, dall’attuale instruction pointer all’indirizzo a cui vogliamo saltare o che vogliamo chiamare. Quindi l**e istruzioni jmp e call sono position‑independent**. Inoltre, per definizione, ogni accesso allo stack dipende dal registro ESP, ma è normale non conoscere la posizione di ESP, quindi ogni volta usate semplicemente ESP più o meno un offset. Di conseguenza, anche quello è position‑independent.
+
+
+Nota: 
+
+- gli arogmenti per le istruzioni syscall vanno messi nei registri, non in memoria
+- gli argomenti per le funzioni vanno messi in memoria (stack)
 
 
 
 ### sc-run/hello32-call.asm
 
-Ecco quindi un modo per rendere questo position‑independent; usiamo un trucco per ottenere l’indirizzo del messaggio: mettiamo il messaggio subito prima dell’istruzione call, e l’istruzione call che invochiamo è a quell’indirizzo. Sappiamo che call è codificata usando un offset, quindi è position‑independent. E cosa fa call? Spinge in cima allo stack l’indirizzo della prossima istruzione. Ma la prossima istruzione non deve per forza essere un’istruzione valida; in realtà call mette semplicemente l’instruction pointer in cima allo stack. Quindi, quando la CPU effettua il fetch di da call real_start dopo il fetch, l’instruction pointer è su msg:. L’istruzione call mette quel valore in cima allo stack e poi inizierà a eseguire real_start. Ma in cima allo stack abbiamo IP che punta a msg: 
-; se facciamo pop di quel valore, otteniamo l’indirizzo del messaggio dentro ECX. Ed è così che otteniamo la position‑independence. È un trucco perché, ovviamente, stiamo “chiamando” qualcosa che non ritornerà. Di solito, se usate call per invocare una funzione, quella poi ritorna. Noi usiamo questo trucco solo per mettere l’indirizzo del messaggio in cima allo stack.
+Ecco quindi un modo per rendere questo position‑independent; usiamo un trucco per ottenere l’indirizzo del messaggio: 
+
+- mettiamo il messaggio subito prima dell’istruzione call, e l’istruzione call che invochiamo è a quell’indirizzo. Sappiamo che call è codificata usando un offset, quindi è position‑independent. E cosa fa call? "Save old eip (rip) on the stack and change eip". 
+
+- Ma la prossima istruzione non deve per forza essere un’istruzione valida; in realtà call mette semplicemente l’instruction pointer in cima allo stack. Quindi, quando la CPU effettua il fetch di da call real_start dopo il fetch, l’instruction pointer è su msg:. 
+- L’istruzione call mette quel valore in cima allo stack e poi inizierà a eseguire real_start. Ma in cima allo stack abbiamo IP che punta a msg: 
+- se facciamo pop di quel valore, otteniamo l’indirizzo del messaggio dentro ECX. Ed è così che otteniamo la position‑independence. È un trucco perché, ovviamente, stiamo “chiamando” qualcosa che non ritornerà. Di solito, se usate call per invocare una funzione, quella poi ritorna. Noi usiamo questo trucco solo per mettere l’indirizzo del messaggio in cima allo stack.
+
+Nota: facendo pop non prendiamo old ebp (sfp),nella funzione chiamata non salvaimo il sfp
 
 This assembly code can be:
 
@@ -256,9 +269,12 @@ L’ho già detto: non ho idea del perché abbiano cambiato i numeri, le system 
 
 This assembly code can be:
 
+For create an ELF program:
+
 - assembled `nasm -f elf64 hello64.asm`
 - Linked: `ld -m elf_x86_64 -o hello64 hello64.o`
 
+For row extraction and injection:
 
 - assembled `nasm hello64.asm -o hello64-pic`
 - Injected: `./sc-run64 < hello64-pic`
@@ -266,7 +282,8 @@ This assembly code can be:
 
 ## use REMOTE instead of LOCAL 
 
-Nota divernte del porg: 
+Nota divernte del prof:
+
 If you can escape that and run something in the real server, you can pass the exam with fine colors and unlock an achievement. But it's not so easy to. I mean, as far as I know, there is no way to do that. I used starting from Google to create a jail. But if you are up to a challenge, try to escape that challenge.
 
 ```sh
@@ -274,7 +291,7 @@ python3 -c 'import os; os.write(1, b"a"*64 + b"\xee\xff\xc0\x00" + b"\n")' | nc 
 python3 exploit7.py REMOTE
 ```
 
-Cosa c'è dentro Shellcraft.sh? Vediamo. Quindi da pound, importiamo star. Ok, ix context.binary è. Ora posso assegnare un file elf o semplicemente definire il nome del file elf aperto in modo da poterli assegnare. Questo è importante perché in questo modo, pound tools capisce che sto lavorando con un eseguibile x86 e così via. Quindi, quando richiedo del codice shell, mi fornirà un codice shell per x86 su una macchina a 64 bit. Lasciate che vi mostri questo. Se scrivo print shellcraft.sh, ottengo questo codice shell. Ma se non ho impostato il contesto, almeno importiamo gli strumenti pound, dovreste vedere che è simile, ma diverso. Quindi, ad esempio, qui imposta il registro RAX, che è disponibile solo in modalità a 64 bit, mentre in questo imposta EBX e così via. Quindi impostare il contesto è piuttosto importante.
+Cosa c'è dentro Shellcraft.sh? Vediamo. Quindi da pound, importiamo star. Ok, ix context.binary è. Ora posso assegnare un file elf o semplicemente definire il nome del file elf aperto in modo da poterli assegnare. Questo è importante perché in questo modo, pown tools capisce che sto lavorando con un eseguibile x86 e così via. Quindi, quando richiedo del codice shell, mi fornirà un codice shell per x86 su una macchina a 64 bit. Lasciate che vi mostri questo. Se scrivo print shellcraft.sh, ottengo questo codice shell. Ma se non ho impostato il contesto, almeno importiamo gli strumenti pown, dovreste vedere che è simile, ma diverso. Quindi, ad esempio, qui imposta il registro RAX, che è disponibile solo in modalità a 64 bit, mentre in questo imposta EBX e così via. Quindi impostare il contesto è piuttosto importante.
 
 
 
