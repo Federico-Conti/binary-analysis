@@ -1,0 +1,10 @@
+Ho copiato la cartella MyPinTool da 
+
+- /9-Instrumentation/pin-external-4.1-99687-gd9b8f822c-gcc-linux/source/tools
+
+Rinominare il file.cpp in MyPinTool.cpp
+fare make 
+$PIN_ROOT/pin -t obj-intel64/MyPinTool.so -- ../../flappy/flappy
+
+
+**Vedere pin.md** per installare quella partella e salvare la variabile di ambiente $PIN_ROOT
