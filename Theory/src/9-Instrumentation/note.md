@@ -99,7 +99,7 @@ Frida inietta un agente (una libreria condivisa) nel processo target. Il process
 3. **Bootstrapper**: Scrive un piccolo programma (bootstrapper) nello spazio allocato ed esegue:
     - Crea un nuovo thread nel processo target
     - Apre una socket per la comunicazione
-    - Carica la libreria dell'agente con `dlopen`
+    - Carica la libreria dell'agente con `dlopen("frida-agent.so")`
     - Avvia l'agente Frida
 
 4. **Ripristino**: Frida ripristina lo stato originale del processo (registri) e si stacca.
@@ -160,6 +160,7 @@ Questo approccio permette di eseguire codice arbitrario prima dell'esecuzione di
 
 
 Frida spawns the target process and injects the agent automatically
+
 * Live reload the agent (automatic reload on file change):
   `frida -n hello-frida -l agent.js`  
 
