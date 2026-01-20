@@ -18,12 +18,13 @@ pwn_student_binaries
 frida-examples
 pin-examples
 flappy
+bin-exam-2026-01-20
 
 # git assignment 
 toppler-Federico-Conti
 shellcode-Federico-Conti
 exploitation-Federico-Conti
-
+exam-2026-01-20-Federico-Conti
 
 ## tools
 pin-external-4.1-99687-gd9b8f822c-gcc-linux.tar.gz
